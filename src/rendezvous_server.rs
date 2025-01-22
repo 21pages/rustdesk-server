@@ -102,6 +102,7 @@ impl RendezvousServer {
         log::info!("Listening on tcp :{}, extra port for NAT test", nat_port);
         log::info!("Listening on websocket :{}", ws_port);
         let mut socket = create_udp_listener(port, rmem).await?;
+        log::info!("create_udp_listener socket ok");
         let (tx, mut rx) = mpsc::unbounded_channel::<Data>();
         let software_url = get_arg("software-url");
         let version = hbb_common::get_version_from_url(&software_url);
@@ -229,6 +230,7 @@ impl RendezvousServer {
         socket: &mut FramedSocket,
         key: &str,
     ) -> LoopFailure {
+        log::info!("io_loop");
         let mut timer_check_relay = interval(Duration::from_millis(CHECK_RELAY_TIMEOUT));
         loop {
             tokio::select! {
@@ -1308,18 +1310,20 @@ async fn send_rk_res(
 async fn create_udp_listener(port: i32, rmem: usize) -> ResultType<FramedSocket> {
     let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), port as _);
     if let Ok(s) = FramedSocket::new_reuse(&addr, true, rmem).await {
-        log::debug!("listen on udp {:?}", s.local_addr());
+        log::info!("listen on v6 udp {:?}", s.local_addr());
         return Ok(s);
     }
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), port as _);
     let s = FramedSocket::new_reuse(&addr, true, rmem).await?;
-    log::debug!("listen on udp {:?}", s.local_addr());
+    log::info!("listen on v4 udp {:?}", s.local_addr());
     Ok(s)
 }
 
 #[inline]
 async fn create_tcp_listener(port: i32) -> ResultType<TcpListener> {
-    let s = listen_any(port as _).await?;
-    log::debug!("listen on tcp {:?}", s.local_addr());
+    let s = listen_any(port as _).await;
+    log::info!("create_tcp_listener s: {:?}", s);
+    let s = s?;
+    log::info!("listen on tcp {:?}", s);
     Ok(s)
 }

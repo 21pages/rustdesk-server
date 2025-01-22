@@ -85,7 +85,13 @@ pub async fn start(port: &str, key: &str) -> ResultType<()> {
     let main_task = async move {
         loop {
             log::info!("Start");
-            io_loop(listen_any(port).await?, listen_any(port2).await?, &key).await;
+            let listener = listen_any(port).await;
+            log::info!("listener: {:?}", listener);
+            let listener = listener?;
+            let listener2 = listen_any(port2).await;
+            log::info!("listener2: {:?}", listener2);
+            let listener2 = listener2?;
+            io_loop(listener, listener2, &key).await;
         }
     };
     let listen_signal = crate::common::listen_signal();

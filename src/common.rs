@@ -200,7 +200,9 @@ pub fn check_software_update() {
 
 #[tokio::main(flavor = "current_thread")]
 async fn check_software_update_() -> hbb_common::ResultType<()> {
+    log::info!("begin checking software update");
     let (request, url) = hbb_common::version_check_request(hbb_common::VER_TYPE_RUSTDESK_SERVER.to_string());
+    log::info!("get request");
     let latest_release_response = reqwest::Client::builder().build()?
         .post(url)
         .json(&request)
@@ -214,5 +216,6 @@ async fn check_software_update_() -> hbb_common::ResultType<()> {
     if get_version_number(&latest_release_version) > get_version_number(crate::version::VERSION) {
        log::info!("new version is available: {}", latest_release_version);
     }
+    log::info!("end checking software update");
     Ok(())
 }
